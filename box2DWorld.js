@@ -7,6 +7,7 @@ var Box2DWorld = function(Box2D) {
 
 
   var Vec2             = Box2D.Common.Math.b2Vec2;
+  var AABB             = Box2D.Collision.b2AABB;
   var BodyDef          = Box2D.Dynamics.b2BodyDef;
   var Body             = Box2D.Dynamics.b2Body;
   var FixtureDef       = Box2D.Dynamics.b2FixtureDef;
@@ -18,25 +19,28 @@ var Box2DWorld = function(Box2D) {
   var DebugDraw        = Box2D.Dynamics.b2DebugDraw;
   var RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef;
 
-  var world = new World(Vec2(-9.8,0), allowSleep); // world with gravity down
+  var world = new World(new Vec2(0,9.8), allowSleep); // world with gravity down
 
   // sseefried: A helper function I created to simplify creating dynamic bodies.
   var createBody = function(bodySpec, fixtureSpecs) {
     var bodyDef = new BodyDef, fixtureDef, body, i, spec;
 
     bodyDef.type = bodySpec.bodyType || Body.b2_staticBody;
-    bodyDef.position.x = bodySpec.x || 0
+    bodyDef.position.x = bodySpec.x || 0;
     bodyDef.position.y = bodySpec.y || 0;
-    bodyDef.angularDamping = bodySpec.angularDamping || 0
+    bodyDef.angularDamping = bodySpec.angularDamping || 0;
+
     body = world.CreateBody(bodyDef);
 
     fixtureDef = new FixtureDef;
     for (i in fixtureSpecs) {
+
       spec                   = fixtureSpecs[i];
       fixtureDef.density     = spec.density || 1;
       fixtureDef.friction    = spec.friction || 1.0;
       fixtureDef.restitution = spec.restitution || 0.0;
       fixtureDef.shape       = spec.shape;
+
 
       // if (bodyDef.type === b2.Body.b2_dynamicBody) {
       //   fixtureDef.filter.categoryBits = 0x0002;
@@ -48,9 +52,13 @@ var Box2DWorld = function(Box2D) {
   };
 
   var createDynamicBody = function(bodySpec, fixtureSpecs) {
-    var newBodySpec = bodySpec; // FIXME: COPY THE VALUE
-    newBodySpec.bodyType = Body.b2_dynamicBody;
-    return createBody(newBodySpec, fixtureSpecs);
+    // FIXME: Must be better way of copying object
+    var bs = { bodyType:       Body.b2_dynamicBody,
+               x:              bodySpec.x,
+               y:              bodySpec.y,
+               angularDamping: bodySpec.anglularDamping };
+
+    return createBody(bs, fixtureSpecs);
   };
   
   /*
@@ -116,6 +124,7 @@ var Box2DWorld = function(Box2D) {
   return({
     world:             world,
     Vec2:              Vec2,
+    AABB:              AABB,
     BodyDef:           BodyDef,
     Body:              Body,
     FixtureDef:        FixtureDef,
